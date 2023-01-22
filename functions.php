@@ -54,8 +54,7 @@ function show_warning($msg){
     
 }
 
-
-
+// show tables
 function showTable($result) {
     $table = "<pre class='text-center'><table border='1' style='border-collapse: collapse; width: 100%;'>";
     $table .= "<thead><tr>";

@@ -11,6 +11,7 @@ define("MEDIA_DB_HOST","");
 define("MEDIA_DB_USER","");
 define("MEDIA_DB_PASS","");
 define("MEDIA_DB_NAME","");
+define("SITE_URL","http://localhost/dba/");
 
 if (!defined("ROOTDIR")) {
     define("ROOTDIR", $_SERVER["DOCUMENT_ROOT"] . "/dba/");

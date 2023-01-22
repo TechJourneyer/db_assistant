@@ -39,8 +39,9 @@ require_once ROOTDIR . 'functions.php';
 </style>
 <body>
 <div class="container">
-  <h1 class="text-center">DB Assistant</h1>
-  <p class="text-center">Simplifying your data access</p>
+  <div class="text-center">
+    <img src="<?php ECHO SITE_URL; ?>images/site-logo.png" alt="Logo" style="height:100px">
+  </div>
   <!-- <p>Transforming the way you interact with your data</p> -->
   <div class="form-group">
     <select class="form-control" id="selectBox">
