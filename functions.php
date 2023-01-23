@@ -43,7 +43,7 @@ function valid_read_query($query){
 }
 
 function show_query($query){
-    echo "<p><code class='show-query'>$query</code></p>";
+    echo "<p class='query-box'><code class='show-query'>$query</code></p>";
 }
 
 function show_error($msg){

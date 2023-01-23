@@ -31,9 +31,12 @@ require_once ROOTDIR . 'functions.php';
   }
   .show-query{
     text-align:left !important;
-    background: #f8eff4 ;
     padding: 7px;
 
+  }
+  .query-box{
+    background: #f8eff4 ;
+    padding: 7px;
   }
 
 </style>
