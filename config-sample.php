@@ -11,6 +11,12 @@ define("MEDIA_DB_HOST","");
 define("MEDIA_DB_USER","");
 define("MEDIA_DB_PASS","");
 define("MEDIA_DB_NAME","");
+
+define("AMI_INV_DB_HOST","");
+define("AMI_INV_DB_USER","");
+define("AMI_INV_DB_PASS","");
+define("AMI_INV_DB_NAME","");
+
 define("SITE_URL","http://localhost/dba/");
 
 if (!defined("ROOTDIR")) {

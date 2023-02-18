@@ -13,6 +13,12 @@ function app_list(){
             "HOST" => DB_HOST,
             "USER" => DB_USER,
             "PASS" => DB_PASS,
+        ],
+        "AMI_VIR_INV" => [
+            "DB" => AMI_INV_DB_NAME,
+            "HOST" => AMI_INV_DB_HOST,
+            "USER" => AMI_INV_DB_USER,
+            "PASS" => AMI_INV_DB_PASS,
         ]
     ];
 }
@@ -76,4 +82,37 @@ function showTable($result) {
     }
     $table .= "</tbody></table></pre>";
     return $table;
+}
+
+function call_chatgpt($msg,$model="text-davinci-003",$max_tokens = 100 , $temperature = 0.5){
+    $curl = curl_init();
+    $postfields = [
+        'prompt' => $msg,
+        'max_tokens' => $max_tokens,
+        'temperature' => $temperature,
+        // "explanation" => "none",
+        // "format" => "json",
+    ];
+    curl_setopt_array($curl, array(
+        CURLOPT_URL => "https://api.openai.com/v1/engines/$model/completions",
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_ENCODING => '',
+        CURLOPT_MAXREDIRS => 10,
+        CURLOPT_TIMEOUT => 0,
+        CURLOPT_FOLLOWLOCATION => true,
+        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+        CURLOPT_CUSTOMREQUEST => 'POST',
+        CURLOPT_SSL_VERIFYHOST => false,
+        CURLOPT_SSL_VERIFYPEER => false,
+        CURLOPT_POSTFIELDS => json_encode($postfields),
+        CURLOPT_HTTPHEADER => array(
+            'Content-Type: application/json',
+            'Authorization: Bearer '.CHATGPT_KEY
+        ),
+    ));
+
+    $response = curl_exec($curl);
+    $error = curl_error($curl);
+    curl_close($curl);
+    return json_Decode($response);
 }

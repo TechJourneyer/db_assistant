@@ -63,10 +63,8 @@ if(isset($response->choices[0]->text)){
     }
 
     $prompt_for_query .= "Write a plain mysql query to get results for : $input \n";
-    // echo PHP_EOL . $prompt_for_query;
 
     $query_response  = call_chatgpt($prompt_for_query);
-    // PRINT_R($query_response);
     if(isset($query_response->choices[0]->text)){
         $auto_generated_query = $query_response->choices[0]->text;
         if (strpos(strtolower($auto_generated_query), 'limit') === false) {
@@ -90,42 +88,4 @@ if(isset($response->choices[0]->text)){
 else{
     $logger->warning("Api response failed");
     echo "No results found";
-}
-
-
-function call_chatgpt($msg,$max_tokens = 100 , $temperature = 0.5){
-    $curl = curl_init();
-    $postfields = [
-        // 'model' => "text-davinci-003",
-        'prompt' => $msg,
-        'max_tokens' => $max_tokens,
-        'temperature' => $temperature,
-        // "explanation" => "none",
-        // "format" => "json",
-    ];
-    curl_setopt_array($curl, array(
-        // CURLOPT_URL => 'https://api.openai.com/v1/engines/davinci-codex/completions',
-        // CURLOPT_URL => 'https://api.openai.com/v1/engines/v1/completions',
-        // CURLOPT_URL => 'https://api.openai.com/v1/engines/davinci/completions',
-        CURLOPT_URL => 'https://api.openai.com/v1/engines/text-davinci-003/completions',
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_ENCODING => '',
-        CURLOPT_MAXREDIRS => 10,
-        CURLOPT_TIMEOUT => 0,
-        CURLOPT_FOLLOWLOCATION => true,
-        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-        CURLOPT_CUSTOMREQUEST => 'POST',
-        CURLOPT_SSL_VERIFYHOST => false,
-        CURLOPT_SSL_VERIFYPEER => false,
-        CURLOPT_POSTFIELDS => json_encode($postfields),
-        CURLOPT_HTTPHEADER => array(
-            'Content-Type: application/json',
-            'Authorization: Bearer '.CHATGPT_KEY
-        ),
-    ));
-
-    $response = curl_exec($curl);
-    $error = curl_error($curl);
-    curl_close($curl);
-    return json_Decode($response);
 }
