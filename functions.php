@@ -1,51 +1,52 @@
 <?php
 
 function app_list(){
-    return [
-        "MEDIA" => [
-            "DB" => MEDIA_DB_NAME,
-            "HOST" => MEDIA_DB_HOST,
-            "USER" => MEDIA_DB_USER,
-            "PASS" => MEDIA_DB_PASS,
-        ],
-        "ADP" => [
-            "DB" => DB_NAME,
-            "HOST" => DB_HOST,
-            "USER" => DB_USER,
-            "PASS" => DB_PASS,
-        ],
-        "AMI_VIR_INV" => [
-            "DB" => AMI_INV_DB_NAME,
-            "HOST" => AMI_INV_DB_HOST,
-            "USER" => AMI_INV_DB_USER,
-            "PASS" => AMI_INV_DB_PASS,
-        ]
-    ];
+    global $databaseConfigs;
+    return $databaseConfigs;
 }
 
 function write_commands(){
     return [
-        "drop",
-        "alter",
-        "update",
-        "insert",
-        "create",
-        "truncate",
-        "replace",
-        "delete",
+        "INSERT",
+        "REPLACE",
+        "MERGE",
+        "TRUNCATE",
+        "CREATE",
+        "ALTER",
+        "SET",
+        "CALL",
+        "GRANT",
+        "REVOKE",
+        "UPDATE",
+        "DROP",
+        "DELETE",
+        "UPSERT",
+        "RENAME",
+        "COMMIT",
+        "ROLLBACK"
+    ];
+}
+
+function read_commands(){
+    return [
+        "SELECT",
+        "SHOW",
+        "DESCRIBE",
+        "EXPLAIN",
+        "HELP",
     ];
 }
 
 // check if query is valid read query
 function valid_read_query($query){
-    $query = strtolower($query);
-    foreach(write_commands() as $command){
-        $command = $command . " ";
-        if (strpos($query, $command) !== false) {
-            return false;
-        } 
-    }
-    return true;
+    $queryType = query_type($query);
+    $allowedKeywords = read_commands();
+    $restrictedKeywords = write_commands();
+    return in_array($queryType, $allowedKeywords) && !in_array($queryType, $restrictedKeywords);
+}
+
+function query_type($query){
+    $queryType = strtoupper(substr(trim($query), 0, strpos(trim($query), ' ')));
 }
 
 function show_query($query){
@@ -84,35 +85,62 @@ function showTable($result) {
     return $table;
 }
 
-function call_chatgpt($msg,$model="text-davinci-003",$max_tokens = 100 , $temperature = 0.5){
-    $curl = curl_init();
-    $postfields = [
-        'prompt' => $msg,
-        'max_tokens' => $max_tokens,
-        'temperature' => $temperature,
-        // "explanation" => "none",
-        // "format" => "json",
-    ];
-    curl_setopt_array($curl, array(
-        CURLOPT_URL => "https://api.openai.com/v1/engines/$model/completions",
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_ENCODING => '',
-        CURLOPT_MAXREDIRS => 10,
-        CURLOPT_TIMEOUT => 0,
-        CURLOPT_FOLLOWLOCATION => true,
-        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-        CURLOPT_CUSTOMREQUEST => 'POST',
-        CURLOPT_SSL_VERIFYHOST => false,
-        CURLOPT_SSL_VERIFYPEER => false,
-        CURLOPT_POSTFIELDS => json_encode($postfields),
-        CURLOPT_HTTPHEADER => array(
-            'Content-Type: application/json',
-            'Authorization: Bearer '.CHATGPT_KEY
-        ),
-    ));
+function chatgpt_api($prompt,$model="gpt-3.5-turbo",$max_tokens = 200 , $temperature = 0.5){
+    $apiKey = CHATGPT_KEY;
+    $url = 'https://api.openai.com/v1/chat/completions';
 
-    $response = curl_exec($curl);
-    $error = curl_error($curl);
-    curl_close($curl);
-    return json_Decode($response);
+    $headers = array(
+        "Authorization: Bearer {$apiKey}",
+        "Content-Type: application/json"
+    );
+
+    // Define messages
+    $messages = array();
+    $messages[] = array("role" => "user", "content" => $prompt);
+
+    // Define data
+    $data = array();
+    $data["model"] = $model;
+    $data["messages"] = $messages;
+    $data["max_tokens"] = $max_tokens;
+
+    // init curl
+    $curl = curl_init($url);
+    curl_setopt($curl, CURLOPT_POST, 1);
+    curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($data));
+    curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
+    curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
+    curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, FALSE);
+    curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, FALSE);
+    $result = curl_exec($curl);
+    if (curl_errno($curl)) {
+         $error_msg = 'Error:' . curl_error($curl);
+         curl_close($curl);
+         return [
+            "success" => false,
+            "text" => null,
+            "response" => null,
+            "error_message" =>$error_msg,
+        ];
+    } else {
+        curl_close($curl);
+        $response_array = json_decode($result,true);
+        if(isset($response_array['choices'])){
+            $completion = $response_array['choices'][0]['message']['content'];
+            return [
+                "success" => true,
+                "text" => $completion,
+                "response" => $response_array,
+                "error_message" =>"",
+            ];
+        }
+        else{
+            return [
+                "success" => false,
+                "text" => "",
+                "response" => $response_array,
+                "error_message" =>$response_array['error']['message'],
+            ];
+        }
+    }
 }

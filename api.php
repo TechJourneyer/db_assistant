@@ -10,8 +10,8 @@ require_once ROOTDIR.'Log_master.php';
 $logger = new Log_master();
 $logger->auto_delete_log(5);
 // $logger->display_logs(); // ??
-
-
+echo "<pre>";
+chatgpt_api("Hello","gpt-3.5-turbo",10);exit;
 // Specify the table and columns to retrieve
 $table = "user";
 $columns = ["user_name", "full_name"];
@@ -25,10 +25,10 @@ $selected_app_creds = $creds[$app];
 // Connect to the database
 $database = new Medoo([
     'database_type' => 'mysql',
-    'database_name' => $selected_app_creds['DB'],
-    'server' => $selected_app_creds['HOST'],
-    'username' => $selected_app_creds['USER'],
-    'password' => $selected_app_creds['PASS'],
+    'database_name' => $selected_app_creds['db'],
+    'server' => $selected_app_creds['host'],
+    'username' => $selected_app_creds['user'],
+    'password' => $selected_app_creds['pass'],
 ]);
 
 // Execute the query
@@ -43,10 +43,14 @@ $prompt = "Table names : $table_list \n";
 $prompt .= "Query : $input \n";
 $prompt .= "Show matching table name in comma separated format for above query \n";
 
-
-$response  = call_chatgpt($prompt);
-if(isset($response->choices[0]->text)){
-    $relevant_tables = $response->choices[0]->text;
+$response = chatgpt_api($prompt,"gpt-3.5-turbo",2500 );
+if(!isset($response['success']) ||  $response['success'] == false){
+    $logger->warning("Chatgpt Api response failed");
+    echo "Chatgpt api response failed : " . $response['error_message'];
+    exit;
+}
+if(isset($response['text'])){
+    $relevant_tables = $response['text'];
     $logger->info("table_list : $relevant_tables");
 
     $relevant_tables_array = explode(",",$relevant_tables);
@@ -63,14 +67,21 @@ if(isset($response->choices[0]->text)){
     }
 
     $prompt_for_query .= "Write a plain mysql query to get results for : $input \n";
-
-    $query_response  = call_chatgpt($prompt_for_query);
-    if(isset($query_response->choices[0]->text)){
-        $auto_generated_query = $query_response->choices[0]->text;
-        if (strpos(strtolower($auto_generated_query), 'limit') === false) {
-            $auto_generated_query .= " limit 100";
-        }
+    $prompt_resp = chatgpt_api($prompt_for_query,"gpt-3.5-turbo",2500);
+    if(!isset($prompt_resp['success']) ||  $prompt_resp['success'] == false){
+        $logger->warning("Chatgpt Api response failed");
+        echo "Chatgpt api response failed";
+        exit;
+    }
+    if(isset( $prompt_resp['text'])){
+        $auto_generated_query =  $prompt_resp['text'];
         $auto_generated_query = str_replace(";",   "",$auto_generated_query);
+        if(query_type($query) == 'SELECT'){
+            if (strpos(strtolower($auto_generated_query), 'limit') === false) {
+                $auto_generated_query .= " limit 100";
+            }
+        }
+        
         // echo PHP_EOL . "QUERY : " . $auto_generated_query . PHP_EOL;
         $logger->warning("Final query : $auto_generated_query");
         show_query($auto_generated_query);
@@ -83,9 +94,14 @@ if(isset($response->choices[0]->text)){
                 echo "No results found in database";
             }
         }
+        else{
+            echo "Write command is not supported";
+        }
     }
 }
 else{
     $logger->warning("Api response failed");
     echo "No results found";
+    var_dump($response );
 }
+
