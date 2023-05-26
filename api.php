@@ -9,9 +9,7 @@ require_once ROOTDIR.'Log_master.php';
 
 $logger = new Log_master();
 $logger->auto_delete_log(5);
-// $logger->display_logs(); // ??
-echo "<pre>";
-chatgpt_api("Hello","gpt-3.5-turbo",10);exit;
+
 // Specify the table and columns to retrieve
 $table = "user";
 $columns = ["user_name", "full_name"];
@@ -82,7 +80,6 @@ if(isset($response['text'])){
             }
         }
         
-        // echo PHP_EOL . "QUERY : " . $auto_generated_query . PHP_EOL;
         $logger->warning("Final query : $auto_generated_query");
         show_query($auto_generated_query);
         if(valid_read_query($auto_generated_query)){
