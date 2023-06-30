@@ -1,5 +1,8 @@
-# db_assistant
+# DB Assistant
 
+## Description
+
+DB Assistant is an application that allows users to ask questions to a database using natural language processing. The application utilizes the OpenAI language model to understand and process the queries.
 
 ## Table of Contents
 
@@ -22,3 +25,5 @@ To use the project, follow these steps:
 1. Include the necessary files in your PHP code
 2. Use the functions and classes provided by the project
 3. Customize the code as needed for your own use case
+
+Feel free to explore and modify the code to suit your specific database and requirements.
